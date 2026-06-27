@@ -1,0 +1,37 @@
+{
+  "family": "enterprise-task-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/enterpriseTaskRuntimeRole",
+  "containerDefinitions": [
+    {
+      "name": "task-api",
+      "image": "IMAGE_URI",
+      "essential": true,
+      "portMappings": [{"containerPort": 8080, "protocol": "tcp"}],
+      "secrets": [
+        {"name": "POSTGRES_PASSWORD", "valueFrom": "POSTGRES_PASSWORD_SECRET_ARN"},
+        {"name": "JWT_SECRET", "valueFrom": "JWT_SECRET_ARN"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/enterprise-task-api",
+          "awslogs-region": "REGION",
+          "awslogs-stream-prefix": "api"
+        }
+      },
+      "healthCheck": {
+        "command": ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ]
+}
+
